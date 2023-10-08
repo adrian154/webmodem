@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>WebModem</title>
+        <style>
+            body {
+                font-family: sans-serif;
+            }
+
+            header {
+                padding: 0 1em;
+            }
+
+            .flex-row {
+                display: flex;
+                flex-direction: row;
+            }
+
+            .flex-col {
+                display: flex;
+                flex-direction: column;
+            }
+
+            #transmitter-pane,
+            #receiver-pane,
+            #spectrum-pane {
+                flex-grow: 1;
+                margin: 1em;
+                padding: 1em;
+            }
+
+            #transmitter-pane { background-color: rgba(255, 0, 0, 10%); }
+            #receiver-pane { background-color: rgba(0, 255, 0, 10%); }
+            #spectrum-pane { background-color: rgba(0, 0, 255, 10%); }
+
+            h2 {
+                margin-top: 0;
+            }
+        </style>
+    </head>
+    <body class="flex-col">
+        <header>
+            <p><b>Modulation settings:</b> <span id="modulation-settings"></span></p>
+        </header>
+        <div class="flex-row">
+            <div id="transmitter-pane">
+                <h2>Transmitter</h2>
+                <button id="start-transmit">Start</button>
+            </div>
+            <div id="receiver-pane">
+                <h2>Receiver</h2>
+            </div>
+        </div>
+        <div id="spectrum-pane">
+            <h2>Spectrum</h2>
+        </div>
+        <script src="modem.js"></script>
+    </body>
+</html>
