@@ -29,7 +29,7 @@ const makeRRCFilter = (symbolLen, rolloff) => {
 
 };
 
-const audioCtx = new AudioContext();
+const audioCtx = new OfflineAudioContext(1,48000,48000);
 const rrcFilter = makeRRCFilter(modulationSettings.symbolLen, modulationSettings.rrcRolloff);
 
 document.getElementById("start-transmit").addEventListener("click", async event => {
@@ -38,7 +38,14 @@ document.getElementById("start-transmit").addEventListener("click", async event 
     await audioCtx.audioWorklet.addModule("/tx.js");
     const transmitter = new AudioWorkletNode(audioCtx, "modem-transmitter", {processorOptions: {modulationSettings, rrcFilter}});
     transmitter.connect(audioCtx.destination);
-    audioCtx.resume();
+    audioCtx.startRendering().then(buf => {
+        a = document.createElement('a')
+        a.href = URL.createObjectURL(new Blob([buf.getChannelData(0).buffer], {type: 'application/octet-stream'}))
+        a.download = 'data.raw'
+        a.click()
+    })
+    //audioCtx.resume();
+
 
     // disable button 
     event.target.disabled = 1;

@@ -2,7 +2,6 @@ class ModemTransmitter extends AudioWorkletProcessor {
 
     constructor(options) {
         
-
         super();
         this.modulationSettings = options.processorOptions.modulationSettings;
         this.rrcFilter = options.processorOptions.rrcFilter;
@@ -33,17 +32,19 @@ class ModemTransmitter extends AudioWorkletProcessor {
         // write pulses to I/Q buffers
         while(this.writeIndex < 128) {
 
-            // constellation point is determined here
-            const I = Math.random()<0.5?1:-1, Q = Math.random()<0.5?1:-1;
+            // generate random constellation point for testing purposes
+            const I = Math.random() > 0.5 ? 1 : -1,
+                  Q = Math.random() > 0.5 ? 1 : -1;
 
             // write to buffers
             for(let i = 0; i < this.rrcFilter.length; i++) {
-                if(this.writeIndex + i < 128) {
-                    this.lastFrameI[this.writeIndex + i] += this.rrcFilter[i] * I;
-                    this.lastFrameQ[this.writeIndex + i] += this.rrcFilter[i] * Q;
+                const idx = this.writeIndex + i;
+                if(idx < 128) {
+                    this.lastFrameI[idx] += this.rrcFilter[i] * I;
+                    this.lastFrameQ[idx] += this.rrcFilter[i] * Q;
                 } else {
-                    this.nextFrameI[this.writeIndex + i - 128] += this.rrcFilter[i] * I;
-                    this.nextFrameQ[this.writeIndex + i - 128] += this.rrcFilter[i] * Q;
+                    this.nextFrameI[idx - 128] += this.rrcFilter[i] * I;
+                    this.nextFrameQ[idx - 128] += this.rrcFilter[i] * Q;
                 }
             }
         
