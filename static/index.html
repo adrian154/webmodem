@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         <title>WebModem</title>
         <style>
             body {
@@ -41,7 +42,7 @@
     </head>
     <body class="flex-col">
         <header>
-            <p><b>Modulation settings:</b> <span id="modulation-settings">TODO</span></p>
+            <p><b>Modulation settings:</b> <span id="modulation-settings"></span></p>
         </header>
         <div class="flex-row">
             <div id="transmitter-pane">
@@ -50,6 +51,7 @@
             </div>
             <div id="receiver-pane">
                 <h2>Receiver</h2>
+                <button id="start-receive">Start</button><br><br>
                 <canvas id="constellation" width="256" height="256"></canvas>
             </div>
         </div>

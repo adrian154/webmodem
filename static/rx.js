@@ -10,9 +10,6 @@ class ModemReceiver extends AudioWorkletProcessor {
         this.lastFrameI = new Float32Array(128); this.curFrameI = new Float32Array(128);
         this.lastFrameQ = new Float32Array(128); this.curFrameQ = new Float32Array(128);
         this.readIndex = 0;
-        console.log(options.processorOptions.rrcFilter.join('\n'));
-        console.log(this.createLowpass().join('\n'))
-        console.log(this.filter.join('\n'))
 
         // buffer storing decoded constellation points
         this.decodedPoints = new Float32Array(Math.floor(128 / this.modulationSettings.symbolLen * 2) + 1);
@@ -59,6 +56,10 @@ class ModemReceiver extends AudioWorkletProcessor {
     process(inputList, outputList, parameters) {
 
         const input = inputList[0][0];
+        if(!input) {
+            return;
+        }
+        
         for(let i = 0; i < input.length; i++) {
             const t = (currentFrame + i) / sampleRate;
             this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t);
