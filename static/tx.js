@@ -1,3 +1,5 @@
+const arr = [-1,-0.7142857142857143,-0.4285714285714286,-0.1428571428571429,0.1428571428571428,0.4285714285714286,0.7142857142857142,1];
+
 class ModemTransmitter extends AudioWorkletProcessor {
 
     constructor(options) {
@@ -33,8 +35,8 @@ class ModemTransmitter extends AudioWorkletProcessor {
         while(this.writeIndex < 128) {
 
             // generate random constellation point for testing purposes
-            const I = Math.random() > 0.5 ? 1 : -1,
-                  Q = Math.random() > 0.5 ? 1 : -1;
+            const I = arr[Math.floor(Math.random() * 8)], Q = arr[Math.floor(Math.random() * 8)];
+            //const I = Math.sign(Math.random() - 0.5), Q = Math.sign(Math.random() - 0.5);
 
             // write to buffers
             for(let i = 0; i < this.rrcFilter.length; i++) {

@@ -29,6 +29,7 @@
                 padding: 1em;
             }
 
+            /* pane colors */
             #transmitter-pane { background-color: rgba(255, 0, 0, 10%); }
             #receiver-pane { background-color: rgba(0, 255, 0, 10%); }
             #spectrum-pane { background-color: rgba(0, 0, 255, 10%); }
@@ -49,6 +50,7 @@
             </div>
             <div id="receiver-pane">
                 <h2>Receiver</h2>
+                <canvas id="constellation" width="256" height="256"></canvas>
             </div>
         </div>
         <div id="spectrum-pane">

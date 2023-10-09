@@ -24,28 +24,41 @@ const makeRRCFilter = (symbolLen, rolloff) => {
     }
 
     // scale kernel so gain = 1
-    const sum = filter.reduce((a,c) => a + c);
-    return filter.map(x => x / sum);
+    return filter;
+    //const sum = filter.reduce((a,c) => a + c);
+    //return filter.map(x => x / sum);
 
 };
 
-const audioCtx = new OfflineAudioContext(1,48000,48000);
+const audioCtx = new AudioContext();
 const rrcFilter = makeRRCFilter(modulationSettings.symbolLen, modulationSettings.rrcRolloff);
 
 document.getElementById("start-transmit").addEventListener("click", async event => {
     
     // create transmitter worklet and start audio context
     await audioCtx.audioWorklet.addModule("/tx.js");
+    await audioCtx.audioWorklet.addModule("/rx.js");
     const transmitter = new AudioWorkletNode(audioCtx, "modem-transmitter", {processorOptions: {modulationSettings, rrcFilter}});
-    transmitter.connect(audioCtx.destination);
-    audioCtx.startRendering().then(buf => {
-        a = document.createElement('a')
-        a.href = URL.createObjectURL(new Blob([buf.getChannelData(0).buffer], {type: 'application/octet-stream'}))
-        a.download = 'data.raw'
-        a.click()
-    })
-    //audioCtx.resume();
+    const receiver = new AudioWorkletNode(audioCtx, "modem-receiver", {processorOptions: {modulationSettings, rrcFilter}});
+    transmitter.connect(receiver);
+    audioCtx.resume();
 
+    let count = 0;
+    const canvas = document.getElementById("constellation"),
+          ctx = canvas.getContext("2d");
+    receiver.port.onmessage = (message) => {
+        if(count % 20 == 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#000000";
+            for(let i = 0; i < message.data.count; i += 2) {
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 + message.data.points[i] * 100, canvas.height / 2 + message.data.points[i + 1] * 100, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+        }
+        count++;
+    };
 
     // disable button 
     event.target.disabled = 1;
