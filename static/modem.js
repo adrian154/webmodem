@@ -40,7 +40,7 @@ document.getElementById("start-transmit").addEventListener("click", async event 
     event.target.disabled = 1;
 
     // create transmitter worklet and start audio context
-    await audioCtx.audioWorklet.addModule("/-tx.js");
+    await audioCtx.audioWorklet.addModule("tx.js");
     const transmitter = new AudioWorkletNode(audioCtx, "modem-transmitter", {processorOptions: {modulationSettings, rrcFilter}});
     transmitter.connect(audioCtx.destination);
     audioCtx.resume();
