@@ -40,7 +40,7 @@ document.getElementById("start-transmit").addEventListener("click", async event 
     event.target.disabled = 1;
 
     // create transmitter worklet and start audio context
-    await audioCtx.audioWorklet.addModule("/tx.js");
+    await audioCtx.audioWorklet.addModule("/-tx.js");
     const transmitter = new AudioWorkletNode(audioCtx, "modem-transmitter", {processorOptions: {modulationSettings, rrcFilter}});
     transmitter.connect(audioCtx.destination);
     audioCtx.resume();
@@ -52,7 +52,7 @@ document.getElementById("start-receive").addEventListener("click", async event =
     // disable button 
     event.target.disabled = 1;
 
-    await audioCtx.audioWorklet.addModule("/rx.js");
+    await audioCtx.audioWorklet.addModule("rx.js");
     const receiver = new AudioWorkletNode(audioCtx, "modem-receiver", {processorOptions: {modulationSettings, rrcFilter}});
     const inputDevice = await navigator.mediaDevices.getUserMedia({audio: true});
     const input = await audioCtx.createMediaStreamSource(inputDevice);
