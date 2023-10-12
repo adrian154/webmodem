@@ -3,7 +3,7 @@
 // modulation settings
 const modulationSettings = {
     carrierFrequency: 12000, // carrier frequency in Hz
-    symbolLen: 3,            // length of a symbol in samples 
+    symbolLen: 4,            // length of a symbol in samples 
     constellationSize: 2,    // # of points per side (i.e. 4 for 16-QAM)
     rrcRolloff: 0.3          // rolloff determines excess bandwidth of RRC filter
 };
@@ -34,6 +34,9 @@ const makeRRCFilter = (symbolLen, rolloff) => {
 const audioCtx = new AudioContext();
 const rrcFilter = makeRRCFilter(modulationSettings.symbolLen, modulationSettings.rrcRolloff);
 
+let loopback = false,
+    output = null;
+
 document.getElementById("start-transmit").addEventListener("click", async event => {
     
     // disable button 
@@ -42,7 +45,11 @@ document.getElementById("start-transmit").addEventListener("click", async event 
     // create transmitter worklet and start audio context
     await audioCtx.audioWorklet.addModule("tx.js");
     const transmitter = new AudioWorkletNode(audioCtx, "modem-transmitter", {processorOptions: {modulationSettings, rrcFilter}});
-    transmitter.connect(audioCtx.destination);
+    if(loopback) {
+        output = transmitter;
+    } else {
+        transmitter.connect(audioCtx.destination);
+    }
     audioCtx.resume();
 
 });
@@ -83,8 +90,7 @@ document.getElementById("start-receive").addEventListener("click", async event =
 
     await audioCtx.audioWorklet.addModule("rx.js");
     const receiver = new AudioWorkletNode(audioCtx, "modem-receiver", {processorOptions: {modulationSettings, rrcFilter}});
-    const inputDevice = await navigator.mediaDevices.getUserMedia({audio: true});
-    const input = await audioCtx.createMediaStreamSource(inputDevice);
+    const input = loopback ? output : await audioCtx.createMediaStreamSource(await navigator.mediaDevices.getUserMedia({audio: true}));
     input.connect(receiver);
     audioCtx.resume();
 
@@ -105,7 +111,7 @@ document.getElementById("start-receive").addEventListener("click", async event =
         count++;
     };
 
-    document.getElementById("delay").addEventListener("input", event => receiver.parameters.get("delay").value = event.target.value / 100);
+    document.getElementById("delay").addEventListener("input", event => receiver.parameters.get("delay").value = event.target.value / 100 * modulationSettings.symbolLen);
 
     analyzeSpectrum(input);
 

@@ -20,7 +20,7 @@ class ModemReceiver extends AudioWorkletProcessor {
 
     static get parameterDescriptors() {
         return [
-            {name: "delay", defaultValue: 0.5}
+            {name: "delay", defaultValue: 0}
         ];
     }
 
@@ -33,15 +33,12 @@ class ModemReceiver extends AudioWorkletProcessor {
 
         for(let i = 0; i < filter.length; i++) {
             const window = 0.54 - 0.46 * Math.cos(PI2 * (i - delay) / filter.length);
-            filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2 - delay)) / (i - filter.length / 2 - delay) * window;
-            /*
-            if(i == filter.length / 2)
+            if(i - filter.length / 2 - delay == 0)
                 filter[i] = PI2 * CUTOFF * window;
             else
-                filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2)) / (i - filter.length / 2) * window;*/
+                filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2 - delay)) / (i - filter.length / 2 - delay) * window;
         }
 
-        console.log(filter);
         return filter;
 
     }
@@ -52,6 +49,10 @@ class ModemReceiver extends AudioWorkletProcessor {
         // convolve lowpass and RRC
         const lowpass = this.createLowpass(delay);
         const filter = new Array(lowpass.length + this.rrcFilter.length).fill(0);
+        if(filter.length > 128) {
+            throw new Error("filter too long");
+        }
+
         for(let i = 0; i < lowpass.length; i++) {
             for(let j = 0; j < this.rrcFilter.length; j++) {
                 filter[i + j] += lowpass[i] * this.rrcFilter[j];
@@ -66,13 +67,11 @@ class ModemReceiver extends AudioWorkletProcessor {
 
     process(inputList, outputList, parameters) {
 
-        // TODO: A-rate params
-        if(parameters.delay.length !== 1) {
-            throw new Error("NO!");
-        }
+
         if(parameters.delay[0] != this.oldDelay) {
             this.filter = this.createFilter(parameters.delay[0]);
             this.oldDelay = parameters.delay[0];
+            console.log(this.oldDelay);
         }
 
         const input = inputList[0][0];
@@ -82,8 +81,8 @@ class ModemReceiver extends AudioWorkletProcessor {
         
         for(let i = 0; i < input.length; i++) {
             const t = (currentFrame + i) / sampleRate;
-            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t) * 8;
-            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t) * 8;
+            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t) * 4;
+            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t) * 4;
         }
 
         // downsample and filter    
