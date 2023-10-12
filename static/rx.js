@@ -6,44 +6,55 @@ class ModemReceiver extends AudioWorkletProcessor {
         
         super();
         this.modulationSettings = options.processorOptions.modulationSettings;
-        this.filter = this.createFilter(options.processorOptions.rrcFilter);
+        this.rrcFilter = options.processorOptions.rrcFilter;
+        this.filter = this.createFilter(0.01);
         this.lastFrameI = new Float32Array(128); this.curFrameI = new Float32Array(128);
         this.lastFrameQ = new Float32Array(128); this.curFrameQ = new Float32Array(128);
         this.readIndex = 0;
+        this.oldDelay = 0.01;
 
         // buffer storing decoded constellation points
         this.decodedPoints = new Float32Array(Math.floor(128 / this.modulationSettings.symbolLen * 2) + 1);
 
     }
 
+    static get parameterDescriptors() {
+        return [
+            {name: "delay", defaultValue: 0.5}
+        ];
+    }
+
     // create lowpass filter by applying a Hamming window to sinc
-    createLowpass() {
+    createLowpass(delay) {
 
         // TODO: figure out why for some lenghts the filter goes haywire
         const filter = new Array(40);
         const CUTOFF = this.modulationSettings.carrierFrequency / sampleRate;
 
         for(let i = 0; i < filter.length; i++) {
-            const window = 0.54 - 0.46 * Math.cos(PI2 * i / filter.length);
+            const window = 0.54 - 0.46 * Math.cos(PI2 * (i - delay) / filter.length);
+            filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2 - delay)) / (i - filter.length / 2 - delay) * window;
+            /*
             if(i == filter.length / 2)
                 filter[i] = PI2 * CUTOFF * window;
             else
-                filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2)) / (i - filter.length / 2) * window;
+                filter[i] = Math.sin(PI2 * CUTOFF * (i - filter.length / 2)) / (i - filter.length / 2) * window;*/
         }
 
+        console.log(filter);
         return filter;
 
     }
 
     // apply lowpass + RRC filter to recover baseband signals
-    createFilter(rrc) {
+    createFilter(delay) {
 
         // convolve lowpass and RRC
-        const lowpass = this.createLowpass();
-        const filter = new Array(lowpass.length + rrc.length).fill(0);
+        const lowpass = this.createLowpass(delay);
+        const filter = new Array(lowpass.length + this.rrcFilter.length).fill(0);
         for(let i = 0; i < lowpass.length; i++) {
-            for(let j = 0; j < rrc.length; j++) {
-                filter[i + j] += lowpass[i] * rrc[j];
+            for(let j = 0; j < this.rrcFilter.length; j++) {
+                filter[i + j] += lowpass[i] * this.rrcFilter[j];
             }
         }
 
@@ -55,6 +66,15 @@ class ModemReceiver extends AudioWorkletProcessor {
 
     process(inputList, outputList, parameters) {
 
+        // TODO: A-rate params
+        if(parameters.delay.length !== 1) {
+            throw new Error("NO!");
+        }
+        if(parameters.delay[0] != this.oldDelay) {
+            this.filter = this.createFilter(parameters.delay[0]);
+            this.oldDelay = parameters.delay[0];
+        }
+
         const input = inputList[0][0];
         if(!input) {
             return;
@@ -62,8 +82,8 @@ class ModemReceiver extends AudioWorkletProcessor {
         
         for(let i = 0; i < input.length; i++) {
             const t = (currentFrame + i) / sampleRate;
-            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t);
-            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t);
+            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t) * 8;
+            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t) * 8;
         }
 
         // downsample and filter    

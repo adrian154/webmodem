@@ -47,6 +47,35 @@ document.getElementById("start-transmit").addEventListener("click", async event 
 
 });
 
+const analyzeSpectrum = input => {
+
+    const canvas = document.getElementById("spectrum"),
+          ctx = canvas.getContext("2d");
+
+    // setup spectrum
+    const analyzerNode = audioCtx.createAnalyser();
+    analyzerNode.fftSize = 512;
+    const buf = new Uint8Array(analyzerNode.frequencyBinCount);
+    input.connect(analyzerNode);
+
+    const draw = () => {
+        analyzerNode.getByteFrequencyData(buf);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.beginPath();
+        for(let i = 0; i < buf.length; i++) {
+            if(i == 0)
+                ctx.moveTo(i / buf.length * canvas.width, (1 - buf[i] / 255) * canvas.height);
+            else
+                ctx.lineTo(i / buf.length * canvas.width, (1 - buf[i] / 255) * canvas.height);
+        }
+        ctx.stroke();
+        requestAnimationFrame(draw);
+    };
+
+    draw();
+
+};
+
 document.getElementById("start-receive").addEventListener("click", async event => {
 
     // disable button 
@@ -76,5 +105,8 @@ document.getElementById("start-receive").addEventListener("click", async event =
         count++;
     };
 
-    
+    document.getElementById("delay").addEventListener("input", event => receiver.parameters.get("delay").value = event.target.value / 100);
+
+    analyzeSpectrum(input);
+
 });

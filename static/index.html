@@ -23,17 +23,19 @@
             }
 
             #transmitter-pane,
-            #receiver-pane,
-            #spectrum-pane {
+            #receiver-pane {
                 flex-grow: 1;
                 margin: 1em;
                 padding: 1em;
             }
 
+            #transmitter-pane {
+                flex-grow: 0.3;
+            }
+
             /* pane colors */
             #transmitter-pane { background-color: rgba(255, 0, 0, 10%); }
             #receiver-pane { background-color: rgba(0, 255, 0, 10%); }
-            #spectrum-pane { background-color: rgba(0, 0, 255, 10%); }
 
             h2 {
                 margin-top: 0;
@@ -52,11 +54,12 @@
             <div id="receiver-pane">
                 <h2>Receiver</h2>
                 <button id="start-receive">Start</button><br><br>
+                <p><b>Constellation Diagram</b></p>
                 <canvas id="constellation" width="256" height="256"></canvas>
+                <p><b>Spectrum</b></p>
+                <canvas id="spectrum"></canvas>
+                <input type="range" id="delay">
             </div>
-        </div>
-        <div id="spectrum-pane">
-            <h2>Spectrum</h2>
         </div>
         <script src="modem.js"></script>
     </body>
