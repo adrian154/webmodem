@@ -5,10 +5,10 @@ const modulationSettings = {
     carrierFrequency: 12000, // carrier frequency in Hz
     symbolLen: 4,            // length of a symbol in samples 
     constellationSize: 2,    // # of points per side (i.e. 4 for 16-QAM)
-    rrcRolloff: 0.3          // rolloff determines excess bandwidth of RRC filter
+    rrcRolloff: 0.4          // rolloff determines excess bandwidth of RRC filter
 };
 
-document.getElementById("modulation-settings").textContent = `carrier = ${modulationSettings.carrierFrequency} Hz, RRC rolloff = ${modulationSettings.rrcRolloff}`;
+document.getElementById("modulation-settings").textContent = `carrier = ${modulationSettings.carrierFrequency} Hz, symbol length = ${modulationSettings.symbolLen}, RRC rolloff = ${modulationSettings.rrcRolloff}`;
 
 const makeRRCFilter = (symbolLen, rolloff) => {
 
@@ -83,6 +83,35 @@ const analyzeSpectrum = input => {
 
 };
 
+const drawConstellation = receiver => {
+
+    let count = 0;
+    const canvas = document.getElementById("constellation"),
+          ctx = canvas.getContext("2d");
+
+    let points = [];
+
+    receiver.port.onmessage = (message) => {
+        if(count % 20 == 0) {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#000000";
+            for(const point of points) {
+                ctx.beginPath();
+                ctx.arc(canvas.width / 2 + point[0] * 100, canvas.height / 2 + point[1] * 100, 2, 0, 2 * Math.PI);
+                ctx.fill();
+            }
+            points = [];
+        } else {
+            for(let i = 0; i < message.data.count; i += 2) {
+                points.push([message.data.points[i], message.data.points[i + 1]]);
+            }
+        }
+        count++;
+    };
+
+};
+
 document.getElementById("start-receive").addEventListener("click", async event => {
 
     // disable button 
@@ -94,25 +123,10 @@ document.getElementById("start-receive").addEventListener("click", async event =
     input.connect(receiver);
     audioCtx.resume();
 
-    let count = 0;
-    const canvas = document.getElementById("constellation"),
-          ctx = canvas.getContext("2d");
-    receiver.port.onmessage = (message) => {
-        if(count % 20 == 0) {
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = "#000000";
-            for(let i = 0; i < message.data.count; i += 2) {
-                ctx.beginPath();
-                ctx.arc(canvas.width / 2 + message.data.points[i] * 100, canvas.height / 2 + message.data.points[i + 1] * 100, 2, 0, 2 * Math.PI);
-                ctx.fill();
-            }
-        }
-        count++;
-    };
+    // draw analytics
+    analyzeSpectrum(input);
+    drawConstellation(receiver);
 
     document.getElementById("delay").addEventListener("input", event => receiver.parameters.get("delay").value = event.target.value / 100 * modulationSettings.symbolLen);
-
-    analyzeSpectrum(input);
 
 });

@@ -71,7 +71,6 @@ class ModemReceiver extends AudioWorkletProcessor {
         if(parameters.delay[0] != this.oldDelay) {
             this.filter = this.createFilter(parameters.delay[0]);
             this.oldDelay = parameters.delay[0];
-            console.log(this.oldDelay);
         }
 
         const input = inputList[0][0];
