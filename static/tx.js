@@ -1,4 +1,5 @@
-const arr =[-1,-0.33333333333333337,0.33333333333333326,1];
+//const arr =[-1,-0.33333333333333337,0.33333333333333326,1];
+const arr = [-1, 1];
 
 class ModemTransmitter extends AudioWorkletProcessor {
 

@@ -97,15 +97,25 @@ const drawConstellation = receiver => {
 
     receiver.port.onmessage = (message) => {
         if(count % 50 == 0) {
+
+            // compute mean distance 
+            let avgDist = 0;
+            for(const point of points) {
+                avgDist += Math.sqrt(point[0]**2 + point[1]**2);
+            }
+            avgDist /= points.length;
+
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#000000";
             for(const point of points) {
                 ctx.beginPath();
-                ctx.arc(canvas.width / 2 + point[0] * 100, canvas.height / 2 + point[1] * 100, 2, 0, 2 * Math.PI);
+                ctx.arc(canvas.width/2 + point[0]/avgDist*100, canvas.height/2 + point[1]/avgDist*100, 2, 0, 2 * Math.PI);
                 ctx.fill();
             }
+            
             points = [];
+
         } else {
             for(let i = 0; i < message.data.count; i += 2) {
                 points.push([message.data.points[i], message.data.points[i + 1]]);
