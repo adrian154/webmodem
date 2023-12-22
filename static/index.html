@@ -30,7 +30,7 @@
             }
 
             #transmitter-pane {
-                flex-grow: 0.3;
+                flex-grow: 0;
             }
 
             /* pane colors */
@@ -45,19 +45,21 @@
     <body class="flex-col">
         <header>
             <p><b>Modulation settings:</b> <span id="modulation-settings"></span></p>
+            <input type="checkbox" id="loopback"> <label for="loopback">Use loopback (your input/output device selection will be ignored)</label>
         </header>
         <div class="flex-row">
             <div id="transmitter-pane">
                 <h2>Transmitter</h2>
-                <button id="start-transmit">Start</button>
+                <select id="output-select"></select> <button id="start-transmit">Start</button>
             </div>
             <div id="receiver-pane">
                 <h2>Receiver</h2>
-                <button id="start-receive">Start</button><br><br>
+                <select id="input-select"></select> <button id="start-receive">Start</button><br><br>
                 <p><b>Constellation Diagram</b></p>
                 <canvas id="constellation" width="256" height="256"></canvas>
                 <p><b>Spectrum</b></p>
                 <canvas id="spectrum"></canvas>
+                <p><b>Delay</b></p>
                 <input type="range" id="delay">
             </div>
         </div>
