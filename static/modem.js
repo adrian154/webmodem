@@ -3,9 +3,9 @@
 // modulation settings
 const modulationSettings = {
     carrierFrequency: 12000, // carrier frequency in Hz
-    symbolLen: 4,            // length of a symbol in samples 
+    symbolLen: 3,            // length of a symbol in samples 
     constellationSize: 2,    // # of points per side (i.e. 4 for 16-QAM)
-    rrcRolloff: 0.4          // rolloff determines excess bandwidth of RRC filter
+    rrcRolloff: 0.1         // rolloff determines excess bandwidth of RRC filter
 };
 
 document.getElementById("modulation-settings").textContent = `carrier = ${modulationSettings.carrierFrequency} Hz, symbol length = ${modulationSettings.symbolLen}, RRC rolloff = ${modulationSettings.rrcRolloff}`;
@@ -13,7 +13,7 @@ document.getElementById("modulation-settings").textContent = `carrier = ${modula
 const makeRRCFilter = (symbolLen, rolloff) => {
 
     // the RRC formula has holes at a few points that we need to manually patch up
-    const filter = new Array(32);
+    const filter = new Array(64);
     for(let i = 0; i < filter.length; i++) {
         const t = (i - filter.length / 2) / symbolLen;
         const undef = symbolLen / (4 * rolloff);
@@ -68,10 +68,14 @@ const analyzeSpectrum = input => {
     analyzerNode.fftSize = 512;
     const buf = new Uint8Array(analyzerNode.frequencyBinCount);
     input.connect(analyzerNode);
+    analyzerNode.smoothingTimeConstant = 0.8;
 
     const draw = () => {
+
         analyzerNode.getByteFrequencyData(buf);
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         ctx.beginPath();
         for(let i = 0; i < buf.length; i++) {
             if(i == 0)
@@ -96,7 +100,7 @@ const drawConstellation = receiver => {
     let points = [];
 
     receiver.port.onmessage = (message) => {
-        if(count % 50 == 0) {
+        if(count % 20 == 0) {
 
             // compute mean distance 
             let avgDist = 0;
@@ -147,7 +151,11 @@ document.getElementById("start-receive").addEventListener("click", async event =
     analyzeSpectrum(input);
     drawConstellation(receiver);
 
-    document.getElementById("delay").addEventListener("input", event => receiver.parameters.get("delay").value = event.target.value / 100 * modulationSettings.symbolLen);
+    document.getElementById("delay").addEventListener("input", event => {
+        const delay = event.target.value / event.target.max * modulationSettings.symbolLen;
+        receiver.parameters.get("delay").value = delay;
+        document.getElementById("delay-value").textContent = delay.toFixed(2);
+    });
 
 });
 
@@ -177,5 +185,3 @@ if(!audioCtx.setSinkId) {
     option.selected = 1;
     outputSelect.append(option);
 }
-
-// disable input/output selection if loopback checkbox is checked 

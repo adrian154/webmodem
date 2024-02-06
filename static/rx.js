@@ -27,8 +27,8 @@ class ModemReceiver extends AudioWorkletProcessor {
     // create lowpass filter by applying a Hamming window to sinc
     createLowpass(delay) {
 
-        // TODO: figure out why for some lenghts the filter goes haywire
-        const filter = new Array(40);
+        // TODO: figure out why for some lengths the filter goes haywire
+        const filter = new Array(32);
         const CUTOFF = this.modulationSettings.carrierFrequency / sampleRate;
 
         for(let i = 0; i < filter.length; i++) {
@@ -59,7 +59,7 @@ class ModemReceiver extends AudioWorkletProcessor {
             }
         }
 
-        // scale filter so gain = 1
+        // scale filter to unity gain
         const sum = filter.reduce((a, c) => a + c);
         return filter.map(x => x / sum);
 

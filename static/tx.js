@@ -1,5 +1,7 @@
 //const arr =[-1,-0.33333333333333337,0.33333333333333326,1];
-const arr = [-1, 1];
+const arr = [-1,-0.7142857142857143,-0.4285714285714286,-0.1428571428571429,0.1428571428571428,0.4285714285714286,0.7142857142857142,1];
+//const arr = [-1, 1];
+
 
 class ModemTransmitter extends AudioWorkletProcessor {
 
@@ -20,6 +22,10 @@ class ModemTransmitter extends AudioWorkletProcessor {
 
         // transmit full buffers
         const output = outputList[0][0];
+        if(!output) {
+            return true;
+        }
+        
         for(let i = 0; i < output.length; i++) {
             const t = (currentFrame + i) / sampleRate;
             output[i] = Math.sin(2 * Math.PI * this.modulationSettings.carrierFrequency * t) * this.lastFrameI[i] +

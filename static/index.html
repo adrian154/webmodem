@@ -55,12 +55,18 @@
             <div id="receiver-pane">
                 <h2>Receiver</h2>
                 <select id="input-select"></select> <button id="start-receive">Start</button><br><br>
-                <p><b>Constellation Diagram</b></p>
-                <canvas id="constellation" width="256" height="256"></canvas>
-                <p><b>Spectrum</b></p>
-                <canvas id="spectrum"></canvas>
+                <div class="flex-row">
+                    <div style="margin-right: 2em">
+                        <p><b>Constellation Diagram</b></p>
+                        <canvas id="constellation" width="256" height="256"></canvas>
+                    </div>
+                    <div>
+                        <p><b>Spectrum</b></p>
+                        <canvas id="spectrum" width="400" height="256"></canvas>
+                    </div>
+                </div>
                 <p><b>Delay</b></p>
-                <input type="range" id="delay">
+                <input type="range" id="delay" min="1" max="1000" style="width: 20em"> <span id="delay-value"></span>
             </div>
         </div>
         <script src="modem.js"></script>
