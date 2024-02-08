@@ -142,7 +142,12 @@ document.getElementById("start-receive").addEventListener("click", async event =
 
     await audioCtx.audioWorklet.addModule("rx.js");
     const receiver = new AudioWorkletNode(audioCtx, "modem-receiver", {processorOptions: {modulationSettings, rrcFilter}});
-    const input = loopbackCheckbox.checked ? output : await audioCtx.createMediaStreamSource(await navigator.mediaDevices.getUserMedia({audio: {deviceId: inputSelect.value}}));
+    const input = loopbackCheckbox.checked ? output : await audioCtx.createMediaStreamSource(await navigator.mediaDevices.getUserMedia({audio: {
+        deviceId: inputSelect.value,
+        autoGainControl: false,
+        echoCancellation: false,
+        noiseSuppression: false
+    }}));
     input.connect(receiver);
     audioCtx.resume();
 
