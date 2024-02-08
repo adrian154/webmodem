@@ -1,4 +1,5 @@
 const PI2 = 2 * Math.PI;
+const FRAME_SIZE = 128;
 
 class ModemReceiver extends AudioWorkletProcessor {
 
@@ -8,13 +9,13 @@ class ModemReceiver extends AudioWorkletProcessor {
         this.modulationSettings = options.processorOptions.modulationSettings;
         this.rrcFilter = options.processorOptions.rrcFilter;
         this.filter = this.createFilter(0.01);
-        this.lastFrameI = new Float32Array(128); this.curFrameI = new Float32Array(128);
-        this.lastFrameQ = new Float32Array(128); this.curFrameQ = new Float32Array(128);
+        this.lastFrameI = new Float32Array(FRAME_SIZE); this.curFrameI = new Float32Array(FRAME_SIZE);
+        this.lastFrameQ = new Float32Array(FRAME_SIZE); this.curFrameQ = new Float32Array(FRAME_SIZE);
         this.readIndex = 0;
         this.oldDelay = 0.01;
 
         // buffer storing decoded constellation points
-        this.decodedPoints = new Float32Array(Math.floor(128 / this.modulationSettings.symbolLen * 2) + 1);
+        this.decodedPoints = new Float32Array(Math.floor(FRAME_SIZE / this.modulationSettings.symbolLen * 2) + 1);
 
     }
 
@@ -28,7 +29,7 @@ class ModemReceiver extends AudioWorkletProcessor {
     createLowpass(delay) {
 
         // TODO: figure out why for some lengths the filter goes haywire
-        const filter = new Array(32);
+        const filter = new Array(64);
         const CUTOFF = this.modulationSettings.carrierFrequency / sampleRate;
 
         for(let i = 0; i < filter.length; i++) {
@@ -49,7 +50,7 @@ class ModemReceiver extends AudioWorkletProcessor {
         // convolve lowpass and RRC
         const lowpass = this.createLowpass(delay);
         const filter = new Array(lowpass.length + this.rrcFilter.length).fill(0);
-        if(filter.length > 128) {
+        if(filter.length > FRAME_SIZE) {
             throw new Error("filter too long");
         }
 
@@ -67,7 +68,6 @@ class ModemReceiver extends AudioWorkletProcessor {
 
     process(inputList, outputList, parameters) {
 
-
         if(parameters.delay[0] != this.oldDelay) {
             this.filter = this.createFilter(parameters.delay[0]);
             this.oldDelay = parameters.delay[0];
@@ -75,7 +75,7 @@ class ModemReceiver extends AudioWorkletProcessor {
 
         const input = inputList[0][0];
         if(!input) {
-            return;
+            return true;
         }
         
         for(let i = 0; i < input.length; i++) {
@@ -86,13 +86,13 @@ class ModemReceiver extends AudioWorkletProcessor {
 
         // downsample and filter    
         let pointIdx = 0;
-        while(this.readIndex + this.filter.length < 128) {
+        while(this.readIndex + this.filter.length < FRAME_SIZE) {
             let ix = 0, qx = 0;
             for(let i = 0; i < this.filter.length; i++) {
                 const idx = this.readIndex + i;
                 if(idx < 0) {
-                    ix += this.lastFrameI[idx + 128] * this.filter[i];
-                    qx += this.lastFrameQ[idx + 128] * this.filter[i]; 
+                    ix += this.lastFrameI[idx + FRAME_SIZE] * this.filter[i];
+                    qx += this.lastFrameQ[idx + FRAME_SIZE] * this.filter[i]; 
                 } else {
                     ix += this.curFrameI[idx] * this.filter[i];
                     qx += this.curFrameQ[idx] * this.filter[i];
@@ -109,7 +109,7 @@ class ModemReceiver extends AudioWorkletProcessor {
         [this.lastFrameI, this.curFrameI] = [this.curFrameI, this.lastFrameI];
         [this.lastFrameQ, this.curFrameQ] = [this.curFrameQ, this.lastFrameQ];
         
-        this.readIndex -= 128;
+        this.readIndex -= FRAME_SIZE;
         return true;
 
     }

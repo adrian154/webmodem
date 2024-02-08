@@ -1,7 +1,10 @@
-//const arr =[-1,-0.33333333333333337,0.33333333333333326,1];
-const arr = [-1,-0.7142857142857143,-0.4285714285714286,-0.1428571428571429,0.1428571428571428,0.4285714285714286,0.7142857142857142,1];
-//const arr = [-1, 1];
+const N = 2;
+const arr = [];
+for(let i = 0; i < N; i++) {
+    arr.push(2*i/(N-1)-1);
+}
 
+const FRAME_SIZE = 128;
 
 class ModemTransmitter extends AudioWorkletProcessor {
 
@@ -12,8 +15,8 @@ class ModemTransmitter extends AudioWorkletProcessor {
         this.rrcFilter = options.processorOptions.rrcFilter;
 
         // pulses extend across frame boundaries, so buffering is necessary
-        this.lastFrameI = new Float32Array(128); this.nextFrameI = new Float32Array(128);
-        this.lastFrameQ = new Float32Array(128); this.nextFrameQ = new Float32Array(128);
+        this.lastFrameI = new Float32Array(FRAME_SIZE); this.nextFrameI = new Float32Array(FRAME_SIZE);
+        this.lastFrameQ = new Float32Array(FRAME_SIZE); this.nextFrameQ = new Float32Array(FRAME_SIZE);
         this.writeIndex = 0;
 
     }
@@ -39,28 +42,27 @@ class ModemTransmitter extends AudioWorkletProcessor {
         this.nextFrameQ.fill(0);
 
         // write pulses to I/Q buffers
-        while(this.writeIndex < 128) {
+        while(this.writeIndex < FRAME_SIZE) {
 
             // generate random constellation point for testing purposes
             const I = arr[Math.floor(Math.random() * arr.length)], Q = arr[Math.floor(Math.random() * arr.length)];
-            //const I = Math.sign(Math.random() - 0.5), Q = Math.sign(Math.random() - 0.5);
-
+            
             // write to buffers
             for(let i = 0; i < this.rrcFilter.length; i++) {
                 const idx = this.writeIndex + i;
-                if(idx < 128) {
+                if(idx < FRAME_SIZE) {
                     this.lastFrameI[idx] += this.rrcFilter[i] * I;
                     this.lastFrameQ[idx] += this.rrcFilter[i] * Q;
                 } else {
-                    this.nextFrameI[idx - 128] += this.rrcFilter[i] * I;
-                    this.nextFrameQ[idx - 128] += this.rrcFilter[i] * Q;
+                    this.nextFrameI[idx - FRAME_SIZE] += this.rrcFilter[i] * I;
+                    this.nextFrameQ[idx - FRAME_SIZE] += this.rrcFilter[i] * Q;
                 }
             }
         
             this.writeIndex += this.modulationSettings.symbolLen;
         
         }
-        this.writeIndex -= 128;
+        this.writeIndex -= FRAME_SIZE;
 
         return true;
 

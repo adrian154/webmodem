@@ -2,10 +2,9 @@
 
 // modulation settings
 const modulationSettings = {
-    carrierFrequency: 12000, // carrier frequency in Hz
-    symbolLen: 3,            // length of a symbol in samples 
-    constellationSize: 2,    // # of points per side (i.e. 4 for 16-QAM)
-    rrcRolloff: 0.1         // rolloff determines excess bandwidth of RRC filter
+    carrierFrequency: 6000, // carrier frequency in Hz
+    symbolLen: 8,            // length of a symbol in samples 
+    rrcRolloff: 0.2,         // rolloff determines excess bandwidth of RRC filter
 };
 
 document.getElementById("modulation-settings").textContent = `carrier = ${modulationSettings.carrierFrequency} Hz, symbol length = ${modulationSettings.symbolLen}, RRC rolloff = ${modulationSettings.rrcRolloff}`;
@@ -63,19 +62,19 @@ const analyzeSpectrum = input => {
     const canvas = document.getElementById("spectrum"),
           ctx = canvas.getContext("2d");
 
-    // setup spectrum
+    // setup spectrum analyzer
     const analyzerNode = audioCtx.createAnalyser();
     analyzerNode.fftSize = 512;
     const buf = new Uint8Array(analyzerNode.frequencyBinCount);
     input.connect(analyzerNode);
-    analyzerNode.smoothingTimeConstant = 0.8;
 
     const draw = () => {
 
         analyzerNode.getByteFrequencyData(buf);
 
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#000000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = "#ffff00";
         ctx.beginPath();
         for(let i = 0; i < buf.length; i++) {
             if(i == 0)
@@ -100,7 +99,7 @@ const drawConstellation = receiver => {
     let points = [];
 
     receiver.port.onmessage = (message) => {
-        if(count % 20 == 0) {
+        if(count % 40 == 0) {
 
             // compute mean distance 
             let avgDist = 0;
@@ -109,12 +108,12 @@ const drawConstellation = receiver => {
             }
             avgDist /= points.length;
 
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.fillStyle = "#000000";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "#00ff00";
             for(const point of points) {
                 ctx.beginPath();
-                ctx.arc(canvas.width/2 + point[0]/avgDist*100, canvas.height/2 + point[1]/avgDist*100, 2, 0, 2 * Math.PI);
+                ctx.arc(canvas.width/2 + point[0]/avgDist*100, canvas.height/2 + point[1]/avgDist*100, 1, 0, 2 * Math.PI);
                 ctx.fill();
             }
             
