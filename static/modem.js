@@ -158,7 +158,7 @@ document.getElementById("start-receive").addEventListener("click", async event =
     document.getElementById("delay").addEventListener("input", event => {
         const delay = event.target.value / event.target.max * modulationSettings.symbolLen;
         receiver.parameters.get("delay").value = delay;
-        receiver.parameters.get("phaseOffset").value = event.target.value / event.target.max * 2 * Math.PI;
+        //receiver.parameters.get("phaseOffset").value = event.target.value / event.target.max * 2 * Math.PI;
         document.getElementById("delay-value").textContent = delay.toFixed(2);
     });
 
