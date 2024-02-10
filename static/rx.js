@@ -78,12 +78,11 @@ class ModemReceiver extends AudioWorkletProcessor {
         if(!input) {
             return true;
         }
-        
-        const phaseOffset = 2 * Math.PI * parameters.phaseOffset[0];
+
         for(let i = 0; i < input.length; i++) {
             const t = (currentFrame + i) / sampleRate;
-            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t + ) * 4;
-            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t) * 4;
+            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t + parameters.phaseOffset[0]) * 4;
+            this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t + parameters.phaseOffset[0]) * 4;
         }
 
         // downsample and filter    
