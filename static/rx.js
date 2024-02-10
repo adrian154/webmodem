@@ -21,7 +21,8 @@ class ModemReceiver extends AudioWorkletProcessor {
 
     static get parameterDescriptors() {
         return [
-            {name: "delay", defaultValue: 0}
+            {name: "delay", defaultValue: 0},
+            {name: "phaseOffset", defaultValue: 0}
         ];
     }
 
@@ -78,9 +79,10 @@ class ModemReceiver extends AudioWorkletProcessor {
             return true;
         }
         
+        const phaseOffset = 2 * Math.PI * parameters.phaseOffset[0];
         for(let i = 0; i < input.length; i++) {
             const t = (currentFrame + i) / sampleRate;
-            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t) * 4;
+            this.curFrameI[i] = input[i] * Math.sin(PI2 * this.modulationSettings.carrierFrequency * t + ) * 4;
             this.curFrameQ[i] = input[i] * Math.cos(PI2 * this.modulationSettings.carrierFrequency * t) * 4;
         }
 

@@ -2,8 +2,8 @@
 
 // modulation settings
 const modulationSettings = {
-    carrierFrequency: 6000, // carrier frequency in Hz
-    symbolLen: 8,            // length of a symbol in samples 
+    carrierFrequency: 8000,  // carrier frequency in Hz
+    symbolLen: 6,            // length of a symbol in samples 
     rrcRolloff: 0.2,         // rolloff determines excess bandwidth of RRC filter
 };
 
@@ -158,6 +158,7 @@ document.getElementById("start-receive").addEventListener("click", async event =
     document.getElementById("delay").addEventListener("input", event => {
         const delay = event.target.value / event.target.max * modulationSettings.symbolLen;
         receiver.parameters.get("delay").value = delay;
+        receiver.parameters.get("phaseOffset").value = event.target.value / event.target.max * 2 * Math.PI;
         document.getElementById("delay-value").textContent = delay.toFixed(2);
     });
 
